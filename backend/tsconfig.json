@@ -9,6 +9,7 @@
     "esModuleInterop": true,
     "strict": false,
     "baseUrl": "./src",
+    "allowJs": true,
     "paths": {
       "@/*": ["*"]
     }

@@ -1,6 +1,14 @@
 import express from "express";
+import "dotenv/config";
+import mongoose from "mongoose";
+import userRouter from "./routes/user.route.js";
+import cookieParser from "cookie-parser";
 
 const app=express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use("/user",userRouter);
 
 app.get("/", (req,res)=>{
     res.json({
@@ -8,8 +16,13 @@ app.get("/", (req,res)=>{
     })
 });
 
-app.listen(5000,()=>{
-
-    // @ts-ignore
-    console.log(`Server is running on port 5000`);
+app.listen(5000, async()=>{
+try {
+    await mongoose.connect(process.env.DATABASE_URL);
+     // @ts-ignore
+    console.log(`Database Connected Successfully`);
+} catch (error) {
+console.log("Error: ",error);
+}
+   console.log(`Server is running at http://localhost:5000`);
 })
