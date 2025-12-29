@@ -55,7 +55,7 @@ console.log("Signup request received with data:", userData);
 
 
     const signedData = await generateToken({
-    _id: user._id,
+    userId: user._id.toString(),
     name: user.name,
     email: user.email,
     isEmailVerified: user.isEmailVerified,
@@ -126,12 +126,12 @@ async function Signin(userData) {
         return null;
       }
       const signedData = await generateToken({
-        _id: userExists._id,
+        userId: userExists._id.toString(),
         name: userExists.name,
         email: userExists.email,
       });
       return {
-        _id: userExists._id,
+        userId: userExists._id.toString(),
         name: userExists.name,
         email: userExists.email,
         signedData,
@@ -229,7 +229,7 @@ export const verifyOtp = async (req, res) => {
 export const resetPassword = async (req, res) => {
   const { newPassword } = req.body;
 
-  const user = await User.findById(req.user.id);
+  const user = await User.findById(req.user.userId);
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   }
@@ -241,3 +241,9 @@ export const resetPassword = async (req, res) => {
 
   res.json({ message: "Password reset successful" });
 };
+
+
+export const logoutUser = (req, res) => {
+  res.clearCookie("AUTH_JWT");
+  res.json({ msg: "Logged out successfully" });
+}

@@ -1,9 +1,7 @@
 // import { Request, Response, NextFunction } from "express";
 // import jwt from "jsonwebtoken";
 
-// interface JwtPayload {
-//   userId: string;
-// }
+
 
 // export const authenticate = (
 //   req: Request,
@@ -37,6 +35,9 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyToken } from "@/utils/jwt.utils.js";
 
+interface JwtPayload {
+  userId: string;
+}
 export const authenticate = (
   req: Request,
   res: Response,
@@ -53,7 +54,8 @@ export const authenticate = (
   try {
     const decoded = verifyToken(token) as { userId: string };
 
-    req.user = { id: decoded.userId };
+    req.user = { userId: decoded.userId };
+  
     console.log("Decoded payload:", decoded);
 
     next();
@@ -61,3 +63,9 @@ export const authenticate = (
     return res.status(401).json({ message: "Invalid token" });
   }
 };
+
+
+export interface AuthRequest extends Request {
+  user?: { userId: string };
+
+}
