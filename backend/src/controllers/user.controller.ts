@@ -24,3 +24,62 @@ export const getMyProfile = async (req:AuthRequest, res:Response) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+export const updateMyProfile = async (req, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+console.log("Updating profile for userId:", userId);
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { name, email } = req.body;
+
+    // 🛑 At least one field must be provided
+    if (!name && !email) {
+      return res
+        .status(400)
+        .json({ message: "Nothing to update" });
+    }
+
+    // 🔐 Allow only name & email
+    const updateData: { name?: string; email?: string } = {};
+
+    if (name) updateData.name = name;
+    if (email) updateData.email = email;
+
+    // 🔁 Check email uniqueness (IMPORTANT)
+    if (email) {
+      const emailExists = await User.findOne({
+        email,
+        _id: { $ne: userId },
+      });
+
+      if (emailExists) {
+        return res
+          .status(409)
+          .json({ message: "Email already in use" });
+      }
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      updateData,
+      { new: true, runValidators: true }
+    ).select("name email");
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Update profile error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

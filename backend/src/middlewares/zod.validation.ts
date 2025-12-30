@@ -9,9 +9,12 @@ export const validate =
       console.log("Validation successful for request body:", req.body);
       next();
     } catch (error: any) {
+      console.error("Validation error:", error.errors);
       return res.status(400).json({
         success: false,
-        errors: error.errors
+        errors: error.errors,
+        // ts@-ignore 
+      
       });
     }
 
