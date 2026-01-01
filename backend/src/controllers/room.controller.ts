@@ -34,3 +34,42 @@ export const createRoom = async (req, res: Response) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+export const joinRoom = async (req, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const { roomId } = req.params;
+console.log("Room ID:", roomId);
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const room = await Room.findOne({ roomId });
+
+    if (!room) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    // Prevent duplicate join
+    if (room.participants.includes(userId)) {
+      return res.status(400).json({ message: "User already joined room" });
+    }
+
+    room.participants.push(userId);
+    await room.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Joined room successfully",
+      room: {
+        roomId: room.roomId,
+        participantsCount: room.participants.length,
+        language: room.language,
+      },
+    });
+  } catch (error) {
+    console.error("Join room error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
