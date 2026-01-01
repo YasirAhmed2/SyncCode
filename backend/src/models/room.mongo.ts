@@ -4,6 +4,7 @@ export interface IRoom extends Document {
   roomId: string;
   createdBy: mongoose.Types.ObjectId;
   participants: mongoose.Types.ObjectId[];
+  code: string;
   language: "javascript" | "python";
   createdAt: Date;
 }
@@ -29,7 +30,10 @@ const roomSchema = new Schema<IRoom>(
         ref: "User",
       },
     ],
-
+ code: {
+      type: String,
+      default: "",
+    },
     language: {
       type: String,
       enum: ["javascript", "python"],
@@ -43,3 +47,5 @@ const roomSchema = new Schema<IRoom>(
 
 const Room = mongoose.model<IRoom>("Room", roomSchema);
 export default Room;
+
+

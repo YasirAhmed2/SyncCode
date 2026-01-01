@@ -104,3 +104,77 @@ export const getRoomDetails = async (req, res: Response) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const saveRoomCode = async (req, res: Response) => {
+  try {
+    const { roomId } = req.params;
+    const { code, language } = req.body;
+    const userId = req.user?.userId;
+
+    if (!code || !language) {
+      return res.status(400).json({
+        message: "Code and language are required",
+      });
+    }
+
+    const room = await Room.findOne({ roomId });
+
+    if (!room) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    // Only participants can save code
+    if (!room.participants.includes(userId as any)) {
+      return res.status(403).json({
+        message: "You are not a participant of this room",
+      });
+    }
+
+    room.code = code;
+    room.language = language;
+
+    await room.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Code saved successfully",
+    });
+  } catch (error) {
+    console.error("Save code error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+export const loadRoomCode = async (req, res: Response) => {
+  try {
+    const { roomId } = req.params;
+    const userId = req.user?.userId;
+
+    const room = await Room.findOne({ roomId }).select(
+      "code language participants"
+    );
+
+    if (!room) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    // Only participants can view code
+    if (!room.participants.includes(userId as any)) {
+      return res.status(403).json({
+        message: "You are not a participant of this room",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        code: room.code,
+        language: room.language,
+      },
+    });
+  } catch (error) {
+    console.error("Load code error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

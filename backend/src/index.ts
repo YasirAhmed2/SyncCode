@@ -5,7 +5,8 @@ import authRouter from "./routes/auth.route.js";
 import cookieParser from "cookie-parser";
 import userRouter from "./routes/user.route.js";
 import roomRouter from "./routes/room.route.js";
-
+import { initSocket } from "./socket.js";
+import http from "http";
 const app=express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -18,6 +19,13 @@ app.get("/", (req,res)=>{
         message: "Welcome to SyncCode Backend API"
     })
 });
+// @ts-ignore
+const server = http.createServer(app);
+
+// 👉 INIT SOCKET.IO
+initSocket(server);
+
+
 
 app.listen(5000, async()=>{
 try {
