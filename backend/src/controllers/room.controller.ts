@@ -73,3 +73,34 @@ console.log("Room ID:", roomId);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+export const getRoomDetails = async (req, res: Response) => {
+  try {
+    const { roomId } = req.params;
+
+    const room = await Room.findOne({ roomId })
+      .populate("createdBy", "name email")
+      .populate("participants", "name email");
+
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        message: "Room not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        roomId: room.roomId,
+        createdBy: room.createdBy,
+        participants: room.participants,
+        totalParticipants: room.participants.length,
+      },
+    });
+  } catch (error) {
+    console.error("Get room details error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
