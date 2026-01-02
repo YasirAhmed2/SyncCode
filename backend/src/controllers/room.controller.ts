@@ -2,7 +2,8 @@ import { Response } from "express";
 import Room from "@/models/room.mongo.js";
 import { AuthRequest } from "@/middlewares/auth.middleware.js";
 import { generateRoomId } from "@/utils/roomId.utils.js";
-
+import Chat from "@/models/chat.mongo.js";
+import { Socket } from "socket.io";
 export const createRoom = async (req, res: Response) => {
   try {
     const userId = req.user?.userId;
@@ -68,6 +69,13 @@ console.log("Room ID:", roomId);
         language: room.language,
       },
     });
+    const messages = await Chat.find({ roomId })
+  .populate("sender", "name email")
+  .sort({ createdAt: 1 })
+  .limit(50);
+// @ts-ignore
+Socket.emit("chat-history", messages);
+
   } catch (error) {
     console.error("Join room error:", error);
     res.status(500).json({ message: "Server error" });
