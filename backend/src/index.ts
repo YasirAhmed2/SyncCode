@@ -5,6 +5,8 @@ import authRouter from "./routes/auth.route.js";
 import cookieParser from "cookie-parser";
 import userRouter from "./routes/user.route.js";
 import roomRouter from "./routes/room.route.js";
+import executeRouter from "./routes/execute.route.js";
+
 import { initSocket } from "./socket.js";
 import http from "http";
 const app=express();
@@ -12,6 +14,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use("/auth",authRouter);
+app.use("/execute", executeRouter);
 app.use("/user",userRouter);
 app.use("/rooms", roomRouter);
 app.get("/", (req,res)=>{
@@ -22,7 +25,6 @@ app.get("/", (req,res)=>{
 // @ts-ignore
 const server = http.createServer(app);
 
-// 👉 INIT SOCKET.IO
 initSocket(server);
 
 

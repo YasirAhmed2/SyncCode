@@ -4,7 +4,7 @@ import { authenticate } from "../middlewares/auth.middleware.js";
 
 const userRouter = Router();
 
-// 👤 View own profile
+
 userRouter.get("/me", authenticate, getMyProfile);
 userRouter.put("/me",authenticate, updateMyProfile);
 export default userRouter;

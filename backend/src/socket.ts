@@ -30,9 +30,7 @@ export const initSocket = (server: http.Server) => {
   io.on("connection", (socket: Socket) => {
     console.log("🔌 Socket connected:", socket.id);
 
-    /* =========================
-       JOIN ROOM
-    ========================== */
+
     socket.on("join-room", async ({ roomId, userId }: JoinRoomPayload) => {
       if (!roomId || !userId) return;
 
@@ -55,9 +53,7 @@ export const initSocket = (server: http.Server) => {
       console.log(`👤 User ${userId} joined room ${roomId}`);
     });
 
-    /* =========================
-       REAL-TIME CHAT
-    ========================== */
+
     socket.on("send-message", async ({ roomId, userId, message }: ChatPayload) => {
       if (!roomId || !userId || !message) return;
 
@@ -76,10 +72,6 @@ export const initSocket = (server: http.Server) => {
       io.to(roomId).emit("new-message", populatedMessage);
     });
 
-    /* =========================
-       REAL-TIME CODE SYNC
-       (FULL TEXT SYNC – SAFE)
-    ========================== */
     socket.on("code-change", ({ roomId, code }: CodePayload) => {
       if (!roomId || typeof code !== "string") return;
 
@@ -87,9 +79,7 @@ export const initSocket = (server: http.Server) => {
       socket.to(roomId).emit("code-update", code);
     });
 
-    /* =========================
-       DISCONNECT
-    ========================== */
+
     socket.on("disconnect", async () => {
       const { roomId, userId } = socket.data;
       if (!roomId || !userId) return;
@@ -104,9 +94,9 @@ export const initSocket = (server: http.Server) => {
 
       io.to(roomId).emit("participants-update", room?.participants);
 
-      console.log(`❌ User ${userId} left room ${roomId}`);
+      console.log(`User ${userId} left room ${roomId}`);
     });
   });
 
-  console.log("🚀 Socket.IO initialized");
+  console.log("Socket.IO initialized");
 };

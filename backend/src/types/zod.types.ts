@@ -1,8 +1,5 @@
 import { z } from "zod";
 
-/* ===========================
-   SIGNUP VALIDATION
-=========================== */
 export const signupSchema = z.object({
   name: z
     .string()
@@ -17,9 +14,6 @@ export const signupSchema = z.object({
     .min(6, "Password must be at least 6 characters")
 });
 
-/* ===========================
-   LOGIN VALIDATION
-=========================== */
 export const loginSchema = z.object({
   email: z
     .string()
@@ -30,16 +24,12 @@ export const loginSchema = z.object({
     .min(6, "Password required")
 });
 
-/* ===========================
-   FORGOT PASSWORD
-=========================== */
+
 export const forgotPasswordSchema = z.object({
   email: z.string().email("Invalid email")
 });
 
-/* ===========================
-   RESET PASSWORD
-=========================== */
+
 export const resetPasswordSchema = z.object({
   token: z.string(),
   newPassword: z

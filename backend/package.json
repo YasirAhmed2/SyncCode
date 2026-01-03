@@ -12,6 +12,7 @@
   "author": "Yasir Ahmed",
   "license": "MIT",
   "dependencies": {
+    "axios": "^1.13.2",
     "backend": "^0.0.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
