@@ -13,7 +13,7 @@ export const validate =
       return res.status(400).json({
         success: false,
         errors: error.errors,
-        // ts@-ignore 
+    
       
       });
     }
