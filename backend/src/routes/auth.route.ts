@@ -41,7 +41,7 @@ authRouter.post("/login", validate(loginSchema), async (req, res) => {
   }
 });
 
-authRouter.post("/forgot-password",validate(forgotPasswordSchema) ,sendOtp);
+authRouter.post("/forgot-password" ,validate(forgotPasswordSchema),sendOtp);
 authRouter.post("/verify-otp", verifyOtp);
 authRouter.post("/reset-password", authenticate, validate(resetPasswordSchema), resetPassword);
 authRouter.post("/verify-email", verifyEmailOtp);

@@ -6,10 +6,14 @@ import cookieParser from "cookie-parser";
 import userRouter from "./routes/user.route.js";
 import roomRouter from "./routes/room.route.js";
 import executeRouter from "./routes/execute.route.js";
-
+import cors from "cors";
 import { initSocket } from "./socket.js";
 import http from "http";
 const app=express();
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

@@ -106,8 +106,10 @@ export const verifyEmailOtp = async (req, res) => {
 async function Signin(userData) {
   try {
     const userExists = await User.findOne({
+     
       email: userData.email,
     }).exec();
+     console.log(userData.email);
 
     if (!userExists.isEmailVerified) {
   return res.status(403).json({
@@ -213,12 +215,12 @@ export const verifyOtp = async (req, res) => {
 
   res.cookie("AUTH_JWT", resetToken, {
     httpOnly: true,
-    secure: false, 
-    sameSite: "strict",
+    secure: false,
+    sameSite: "lax",
     maxAge: 10 * 60 * 1000
   });
 
-  res.json({ message: "OTP verified" });
+  res.json({ message: "OTP verified", resetToken });
 };
 
 
