@@ -26,7 +26,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '../components/ui/select';
+import axios from 'axios';
 
 export default function Room() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -72,19 +73,60 @@ export default function Room() {
   };
 
   const handleExecute = async () => {
-    setIsExecuting(true);
-    setIsOutputOpen(true);
-    setOutput('Running...\n');
-    
-    try {
-      const result = await executeCode();
-      setOutput(result.error ? `Error: ${result.error}` : result.output);
-    } catch (error) {
-      setOutput('Execution failed. Please try again.');
-    } finally {
-      setIsExecuting(false);
-    }
-  };
+  if (!code.trim()) {
+    toast({ title: 'No code to execute', variant: 'destructive' });
+    return;
+  }
+
+  setIsExecuting(true);
+  setIsOutputOpen(true);
+  setOutput('Running...\n');
+
+  try {
+    const res = await axios.post(
+      'http://localhost:5000/execute',
+      {
+        code,
+        language
+      },
+      {
+        withCredentials: true, // VERY IMPORTANT (JWT cookie)
+      }
+    );
+
+    setOutput(res.data.stdout || 'No output');
+  } catch (error: any) {
+    setOutput(
+      error?.response?.data?.error || 'Execution failed'
+    );
+  } finally {
+    setIsExecuting(false);
+  }
+};
+
+
+const handleSaveCode = async () => {
+  try {
+    console.log('Saving code...', { code, language });
+    console.log('Room ID:', roomId);
+    await axios.put(
+      `http://localhost:5000/rooms/${roomId}/code`,
+      {
+        code,
+        language,
+      },
+      { withCredentials: true }
+    );
+
+    toast({ title: 'Code saved successfully' });
+  } catch (error) {
+    toast({
+      title: 'Failed to save code',
+      variant: 'destructive',
+    });
+  }
+};
+
 
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;
@@ -172,6 +214,16 @@ export default function Room() {
             )}
             <span className="hidden sm:inline">Run</span>
           </Button>
+
+<Button
+  variant="outline"
+  onClick={handleSaveCode}
+  className="gap-2"
+>
+  <Check className="w-4 h-4" />
+  <span className="hidden sm:inline">Save</span>
+</Button>
+
 
           {/* Chat Toggle */}
           <Button

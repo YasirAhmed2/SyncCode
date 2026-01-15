@@ -66,7 +66,9 @@ export default function Dashboard() {
     setIsLoading(true);
     
     try {
-      await joinRoom(joinRoomId);
+      await axios.post(`http://localhost:5000/rooms/${joinRoomId}`, {
+        roomId: joinRoomId
+      }, { withCredentials: true });
       toast({
         title: 'Joined room!',
         description: 'You are now in the coding session.',
