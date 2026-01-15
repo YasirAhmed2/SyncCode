@@ -103,44 +103,51 @@ export const verifyEmailOtp = async (req, res) => {
 };
 
 
+
 async function Signin(userData) {
   try {
     const userExists = await User.findOne({
-     
       email: userData.email,
     }).exec();
-     console.log(userData.email);
-
-    if (!userExists.isEmailVerified) {
-  return res.status(403).json({
-    message: "Please verify your email first"
-  });
-}
 
     if (!userExists) {
       return null;
-    } else {
-      const passwordCheck = bcrypt.compareSync(
-        userData.password,
-        userExists.password
-      );
-      if (!passwordCheck) {
-        return null;
-      }
-      const signedData = await generateToken({
-        userId: userExists._id.toString(),
-        name: userExists.name,
-        email: userExists.email,
-      });
-      return {
-        userId: userExists._id.toString(),
-        name: userExists.name,
-        email: userExists.email,
-        signedData,
-      };
     }
+
+    if (!userExists.isEmailVerified) {
+      throw new Error("EMAIL_NOT_VERIFIED");
+    }
+
+
+    const passwordCheck = bcrypt.compareSync(
+      userData.password,
+      userExists.password
+    );
+    
+    if (!passwordCheck) {
+      return null;
+    }
+
+    const signedData = await generateToken({
+      userId: userExists._id.toString(),
+      name: userExists.name,
+      email: userExists.email,
+    });
+    
+    return {
+      userId: userExists._id.toString(),
+      name: userExists.name,
+      email: userExists.email,
+      signedData,
+    };
+    
   } catch (error) {
-    console.error("ERROR: ", error);
+    console.error("Signin ERROR: ", error);
+    
+    if (error.message === "EMAIL_NOT_VERIFIED") {
+      throw error; 
+    }
+    
     return null;
   }
 }
@@ -150,7 +157,6 @@ export { Signup, Signin };
 
 export const sendOtp = async (req, res) => {
   // ts@-ignore
-  
   const { email } = req.body;
 
   const user = await User.findOne({ email });
@@ -224,10 +230,6 @@ export const verifyOtp = async (req, res) => {
 };
 
 
-
-
-
-
 export const resetPassword = async (req, res) => {
   const { newPassword } = req.body;
 
@@ -244,8 +246,9 @@ export const resetPassword = async (req, res) => {
   res.json({ message: "Password reset successful" });
 };
 
-
 export const logoutUser = (req, res) => {
   res.clearCookie("AUTH_JWT");
   res.json({ msg: "Logged out successfully" });
 }
+
+

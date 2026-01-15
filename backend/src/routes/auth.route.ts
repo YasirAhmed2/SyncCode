@@ -22,21 +22,33 @@ authRouter.post("/register", validate(signupSchema), async (req, res) => {
 });
 
 authRouter.post("/login", validate(loginSchema), async (req, res) => {
+ try{
   const signInReq = await Signin(req.body);
   if (signInReq == null) {
-    res.send({
+    res.status(401).send({
       error: "User does not exists or password is incorrect",
     });
     return;
   } else {
-    res.cookie("AUTH_JWT", signInReq.signedData, {
-      httpOnly: true, // This makes the cookie inaccessible to JavaScript
-    });
-
-    res.send({
-      user: signInReq._id,
+    res.cookie("auth_jwt", signInReq.signedData, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: false // true in production
+  }).status(200).json({
+      user: signInReq.userId,
       name: signInReq.name,
       email: signInReq.email,
+    });
+  }
+  } catch (error) {
+    console.error("Login error:", error);
+     if (error.message === "EMAIL_NOT_VERIFIED") {
+      return res.status(403).json({
+        error: "Please verify your email first"
+      });
+    }
+    return res.status(500).json({
+      error: "Internal server error"
     });
   }
 });
@@ -48,3 +60,4 @@ authRouter.post("/verify-email", verifyEmailOtp);
 authRouter.post("/logout", logoutUser);
 
 export default authRouter;
+

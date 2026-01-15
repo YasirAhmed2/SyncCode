@@ -1,129 +1,111 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { AuthLayout } from '../components/auth.components';
 import { useAuth } from '../context/auth.context';
-import { Mail, Lock,  Eye, EyeOff } from 'lucide-react';
+import { Loader2, Mail, Lock } from 'lucide-react';
+// import { authService } from '../services/authService';
 import toast from 'react-hot-toast';
-
-const LoginPage: React.FC = () => {
+import axios from 'axios';
+export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
   const { login } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsLoading(true);
+  try {
+    const res = await axios.post("http://localhost:5000/auth/login", {
+      email,
+      password
+    }, { withCredentials: true });
 
-    try {
-      await login(email, password);
-      toast.success('Login successful!');
-      navigate('/dashboard');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
-       
-      toast.error(error.response?.data?.message || 'Login failed');
-    } finally {
-      setIsLoading(false);
+    if (!res.data?.user) {
+      throw new Error(res.data?.error || "Login failed");
     }
-  };
+
+    login(res.data);
+    toast.success("Login successful");
+    console.log("Login response data:", res.data);
+    navigate("/dashboard");
+  } catch (err: any) {
+    const errorMessage = err.response?.data?.message || err.response?.data?.error || "Invalid credentials";
+    toast.error(errorMessage);
+    console.error("Login error:", err);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Welcome Back
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">
-            Sign in to your SyncCode account
-          </p>
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Sign in to your account to continue coding"
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="pl-10"
+              required
+            />
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Email Address
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-transparent focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                placeholder="you@example.com"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Password
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-12 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-transparent focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                placeholder="••••••••"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
-          </div>
-
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
+            <Label htmlFor="password">Password</Label>
             <Link
               to="/forgot-password"
-              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition"
+              className="text-sm text-primary hover:underline"
             >
               Forgot password?
             </Link>
           </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:-translate-y-0.5"
-          >
-            {isLoading ? 'Signing in...' : 'Sign In'}
-          </button>
-        </form>
-
-        <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-center text-gray-600 dark:text-gray-300">
-            Don't have an account?{' '}
-            <Link
-              to="/register"
-              className="text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-800 dark:hover:text-blue-300 transition"
-            >
-              Create one here
-            </Link>
-          </p>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="pl-10"
+              required
+            />
+          </div>
         </div>
 
-        <div className="mt-6">
-          <Link
-            to="/"
-            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 flex items-center justify-center"
-          >
-            ← Back to home
-          </Link>
-        </div>
-      </div>
-    </div>
+        <Button type="submit" variant="hero" className="w-full" size="lg" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Signing in...
+            </>
+          ) : (
+            'Sign In'
+          )}
+        </Button>
+      </form>
+
+      <p className="mt-8 text-center text-muted-foreground">
+        Don't have an account?{' '}
+        <Link to="/register" className="text-primary font-medium hover:underline">
+          Sign up
+        </Link>
+      </p>
+    </AuthLayout>
   );
-};
-
-export default LoginPage;
+}

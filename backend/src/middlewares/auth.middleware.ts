@@ -10,7 +10,7 @@ export const authenticate = (
   res: Response,
   next: NextFunction
 ) => {
-  const token = req.cookies["AUTH_JWT"];
+  const token = req.cookies["auth_jwt"];
 
   console.log("Received token:", token);
 

@@ -20,7 +20,7 @@ export const executePistonCode = async (
 
   const response = await axios.post(PISTON_URL, {
     language,
-    version, // ✅ REQUIRED & VALID
+    version,
     files: [
       {
         content: code,

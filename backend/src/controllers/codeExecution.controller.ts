@@ -2,9 +2,7 @@ import { executePistonCode } from "../services/piston.service.js";
 export const runCode = async (req, res) => {
   try {
     const { code, language, input } = req.body;
-
     const result = await executePistonCode(code, language, input || "");
-
     return res.json({
       stdout: result.run.stdout,
       stderr: result.run.stderr,

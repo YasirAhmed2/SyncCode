@@ -1,5 +1,5 @@
 export interface User {
-  _id: string;
+  id: string;
   name: string;
   email: string;
 }
@@ -32,4 +32,37 @@ export interface VerifyOtpRequest {
 export interface ResetPasswordRequest {
   token: string;
   newPassword: string;
+}
+
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface Room {
+  roomId: string;
+  createdBy: string;
+  participants: User[];
+  createdAt: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  sender: User;
+  message: string;
+  timestamp: string;
+}
+
+export enum AppView {
+  LANDING = 'LANDING',
+  AUTH = 'AUTH',
+  DASHBOARD = 'DASHBOARD',
+  ROOM = 'ROOM'
+}
+
+export interface CodeState {
+  code: string;
+  language: 'javascript' | 'python';
 }

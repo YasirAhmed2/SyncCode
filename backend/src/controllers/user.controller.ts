@@ -4,7 +4,6 @@ import User  from "../models/user.mongo.js";
 
 export const getMyProfile = async (req:AuthRequest, res:Response) => {
   try {
-    // console.log("getMyProfile called with user:", req.user);
     const _id =req.user?.userId;
     console.log("Fetching profile for userId:", _id);
     const user = await User.findById(_id).select(
@@ -33,23 +32,18 @@ console.log("Updating profile for userId:", userId);
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-
     const { name, email } = req.body;
-
-    // 🛑 At least one field must be provided
     if (!name && !email) {
       return res
         .status(400)
         .json({ message: "Nothing to update" });
     }
 
-    // 🔐 Allow only name & email
     const updateData: { name?: string; email?: string } = {};
 
     if (name) updateData.name = name;
     if (email) updateData.email = email;
 
-    // 🔁 Check email uniqueness (IMPORTANT)
     if (email) {
       const emailExists = await User.findOne({
         email,
