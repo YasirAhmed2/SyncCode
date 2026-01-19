@@ -2,17 +2,17 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
 interface User {
-  user: string;
+  id: string;
   name: string;
   email: string;
-  
+  avatarColor?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (user:User) => Promise<void>;
+  login: (user: User) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   verifyOtp: (email: string, otp: string) => Promise<void>;
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = async (user:User) => {
+  const login = async (user: User) => {
     // Simulate API call
     setUser(user);
     localStorage.setItem('synccode_user', JSON.stringify(user));
@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const verifyOtp = async (email: string, otp: string) => {
     // Simulate OTP verification
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     const name = localStorage.getItem('pending_user_name') || email.split('@')[0];
     const mockUser: User = {
       id: 'user_' + Math.random().toString(36).substr(2, 9),
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       avatarColor: getRandomColor(),
     };
-    
+
     setUser(mockUser);
     localStorage.setItem('synccode_user', JSON.stringify(mockUser));
     localStorage.removeItem('pending_verification_email');

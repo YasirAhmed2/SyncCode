@@ -1,4 +1,4 @@
-// import { io } from 'socket.io-client';
+import { socket } from '../lib/socket.ts';
 
 
 
@@ -49,7 +49,6 @@ export default function Room() {
     updateCode,
     setLanguage,
     sendMessage,
-    executeCode,
     joinRoom,
     leaveRoom
   } = useRoom();
@@ -61,7 +60,127 @@ export default function Room() {
   const [output, setOutput] = useState<string>('');
   const [isExecuting, setIsExecuting] = useState(false);
   const [copied, setCopied] = useState(false);
+
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<any>(null);
+  const monacoRef = useRef<any>(null);
+  const isRemoteUpdate = useRef(false);
+  const cursorDecorations = useRef<Map<string, string[]>>(new Map());
+
+  // Handle Remote Cursor Rendering
+  const handleRemoteCursorUpdate = (remoteCursor: any) => {
+    if (!editorRef.current || !monacoRef.current) return;
+    const monaco = monacoRef.current;
+    const editor = editorRef.current;
+
+    const oldDecorations = cursorDecorations.current.get(remoteCursor.userId) || [];
+
+    const newDecorations = [
+      {
+        range: new monaco.Range(remoteCursor.lineNumber, remoteCursor.column, remoteCursor.lineNumber, remoteCursor.column + 1),
+        options: {
+          className: `remote-cursor-${remoteCursor.userId}`,
+          beforeContentClassName: `remote-cursor-widget-${remoteCursor.userId}`,
+          stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+          hoverMessage: { value: remoteCursor.name }
+        }
+      }
+    ];
+
+    // Inject CSS if needed (idempotent check)
+    if (!document.getElementById(`style-${remoteCursor.userId}`)) {
+      const style = document.createElement('style');
+      style.id = `style-${remoteCursor.userId}`;
+      style.innerHTML = `
+                .remote-cursor-${remoteCursor.userId} {
+                border-left: 2px solid ${remoteCursor.color} !important;
+                }
+                .remote-cursor-widget-${remoteCursor.userId}::after {
+                content: '${remoteCursor.name}';
+                position: absolute;
+                top: -18px;
+                left: 0;
+                background: ${remoteCursor.color};
+                color: white;
+                font-size: 10px;
+                padding: 0 4px;
+                border-radius: 2px;
+                white-space: nowrap;
+                font-weight: bold;
+                pointer-events: none;
+                }
+            `;
+      document.head.appendChild(style);
+    }
+
+    const newIds = editor.deltaDecorations(oldDecorations, newDecorations);
+    cursorDecorations.current.set(remoteCursor.userId, newIds);
+  };
+
+  const handleEditorDidMount = (editor: any, monaco: any) => {
+    editorRef.current = editor;
+    monacoRef.current = monaco;
+
+    // Listen for cursor movements to broadcast
+    editor.onDidChangeCursorPosition((e: any) => {
+      if (!user) return;
+      const cursorData = {
+        userId: user.id || 'guest',
+        name: user.name || 'Guest',
+        color: user.avatarColor || '#f59e0b',
+        lineNumber: e.position.lineNumber,
+        column: e.position.column
+      };
+      socket.emit('cursor-change', { roomId, cursorData });
+    });
+  };
+
+  useEffect(() => {
+    if (roomId && user) {
+      socket.connect();
+      socket.emit('join-room', { roomId, userId: user.id, userName: user.name });
+
+      socket.on('code-update', (newCode: string) => {
+        if (editorRef.current && newCode !== editorRef.current.getValue()) {
+          const model = editorRef.current.getModel();
+          if (model) {
+            isRemoteUpdate.current = true;
+            const fullRange = model.getFullModelRange();
+            editorRef.current.executeEdits('remote-sync', [{
+              range: fullRange,
+              text: newCode,
+              forceMoveMarkers: true
+            }]);
+            updateCode(newCode); // Update context state
+            isRemoteUpdate.current = false;
+          }
+        }
+      });
+
+      socket.on('cursor-update', (cursorData: any) => {
+        if (cursorData.userId !== user.id) {
+          handleRemoteCursorUpdate(cursorData);
+        }
+      });
+
+      socket.on('user-joined', () => {
+        joinRoom(roomId);
+        toast({ title: 'A user joined the room' });
+      });
+
+      socket.on('language-update', (newLang: 'javascript' | 'python') => {
+        setLanguage(newLang);
+      });
+
+      return () => {
+        socket.off('code-update');
+        socket.off('cursor-update');
+        socket.off('language-update');
+        socket.emit('leave-room', { roomId });
+        socket.disconnect();
+      }
+    }
+  }, [roomId, user]); // Re-subscribe if room or user changes
 
   useEffect(() => {
     if (roomId && !currentRoom) {
@@ -262,9 +381,14 @@ export default function Room() {
             height="100%"
             language={language}
             value={code}
+            onMount={handleEditorDidMount}
             onChange={(value) => {
-              updateCode(value || '')
-              // socket.emit('code-change', value || '');
+              if (value !== undefined) {
+                if (!isRemoteUpdate.current) {
+                  updateCode(value);
+                  socket.emit('code-change', { roomId, code: value, language });
+                }
+              }
             }}
             theme="vs-dark"
             options={{
