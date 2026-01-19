@@ -1,3 +1,7 @@
+// import { io } from 'socket.io-client';
+
+
+
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
@@ -19,7 +23,7 @@ import {
   X,
   Loader2,
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '../hooks/use-toast';
 import {
   Select,
   SelectContent,
@@ -27,23 +31,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
+import { roomService } from '../lib/roomService';
 import axios from 'axios';
 
 export default function Room() {
+  // const socket=io('http://localhost:5000', {
+  // withCredentials: true
+  // });
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { 
-    currentRoom, 
-    code, 
-    language, 
-    messages, 
-    updateCode, 
-    setLanguage, 
-    sendMessage, 
+  const {
+    currentRoom,
+    code,
+    language,
+    messages,
+    updateCode,
+    setLanguage,
+    sendMessage,
     executeCode,
     joinRoom,
-    leaveRoom 
+    leaveRoom
   } = useRoom();
   const { toast } = useToast();
 
@@ -73,59 +81,58 @@ export default function Room() {
   };
 
   const handleExecute = async () => {
-  if (!code.trim()) {
-    toast({ title: 'No code to execute', variant: 'destructive' });
-    return;
-  }
+    if (!code.trim()) {
+      toast({ title: 'No code to execute', variant: 'destructive' });
+      return;
+    }
 
-  setIsExecuting(true);
-  setIsOutputOpen(true);
-  setOutput('Running...\n');
+    setIsExecuting(true);
+    setIsOutputOpen(true);
+    setOutput('Running...\n');
 
-  try {
-    const res = await axios.post(
-      'http://localhost:5000/execute',
-      {
+    try {
+      const res = await axios.post(
+        'http://localhost:5000/execute',
+        {
+          code,
+          language
+        },
+        {
+          withCredentials: true, // VERY IMPORTANT (JWT cookie)
+        }
+      );
+
+      setOutput(res.data.stdout || 'No output');
+    } catch (error: any) {
+      setOutput(
+        error?.response?.data?.error || 'Execution failed'
+      );
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
+
+  const handleSaveCode = async () => {
+    try {
+      console.log('Saving code...', { code, language });
+      console.log('Room ID:', roomId);
+      if (!roomId) return;
+
+      await roomService.saveCode({
+        roomId,
         code,
         language
-      },
-      {
-        withCredentials: true, // VERY IMPORTANT (JWT cookie)
-      }
-    );
+      });
 
-    setOutput(res.data.stdout || 'No output');
-  } catch (error: any) {
-    setOutput(
-      error?.response?.data?.error || 'Execution failed'
-    );
-  } finally {
-    setIsExecuting(false);
-  }
-};
-
-
-const handleSaveCode = async () => {
-  try {
-    console.log('Saving code...', { code, language });
-    console.log('Room ID:', roomId);
-    await axios.put(
-      `http://localhost:5000/rooms/${roomId}/code`,
-      {
-        code,
-        language,
-      },
-      { withCredentials: true }
-    );
-
-    toast({ title: 'Code saved successfully' });
-  } catch (error) {
-    toast({
-      title: 'Failed to save code',
-      variant: 'destructive',
-    });
-  }
-};
+      toast({ title: 'Code saved successfully' });
+    } catch (error) {
+      toast({
+        title: 'Failed to save code',
+        variant: 'destructive',
+      });
+    }
+  };
 
 
   const handleSendMessage = () => {
@@ -144,9 +151,9 @@ const handleSaveCode = async () => {
   ];
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className="h-screen flex flex-col">
       {/* Header */}
-      <header className="h-14 border-b border-border flex items-center justify-between px-4 bg-card shrink-0">
+      <header className="h-14 border-b border-white/10 flex items-center justify-between px-4 bg-white/5 backdrop-blur-xl shrink-0">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={handleLeave}>
             <ChevronLeft className="w-5 h-5" />
@@ -177,7 +184,7 @@ const handleSaveCode = async () => {
               <div
                 key={p.id}
                 className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 border-background"
-                style={{ 
+                style={{
                   backgroundColor: p.avatarColor,
                   marginLeft: i > 0 ? '-8px' : '0',
                   zIndex: 4 - i,
@@ -215,14 +222,14 @@ const handleSaveCode = async () => {
             <span className="hidden sm:inline">Run</span>
           </Button>
 
-<Button
-  variant="outline"
-  onClick={handleSaveCode}
-  className="gap-2"
->
-  <Check className="w-4 h-4" />
-  <span className="hidden sm:inline">Save</span>
-</Button>
+          <Button
+            variant="outline"
+            onClick={handleSaveCode}
+            className="gap-2"
+          >
+            <Check className="w-4 h-4" />
+            <span className="hidden sm:inline">Save</span>
+          </Button>
 
 
           {/* Chat Toggle */}
@@ -255,7 +262,10 @@ const handleSaveCode = async () => {
             height="100%"
             language={language}
             value={code}
-            onChange={(value) => updateCode(value || '')}
+            onChange={(value) => {
+              updateCode(value || '')
+              // socket.emit('code-change', value || '');
+            }}
             theme="vs-dark"
             options={{
               fontSize: 14,
@@ -275,7 +285,7 @@ const handleSaveCode = async () => {
               initial={{ height: 0 }}
               animate={{ height: 200 }}
               exit={{ height: 0 }}
-              className="border-t border-border bg-card"
+              className="border-t border-white/10 bg-white/5 backdrop-blur-xl"
             >
               <div className="flex items-center justify-between px-4 py-2 border-b border-border">
                 <div className="flex items-center gap-2 text-sm font-medium text-foreground">
@@ -299,7 +309,7 @@ const handleSaveCode = async () => {
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 320, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
-            className="border-l border-border bg-card flex flex-col shrink-0"
+            className="border-l border-white/10 bg-white/5 backdrop-blur-xl flex flex-col shrink-0"
           >
             <div className="p-4 border-b border-border flex items-center justify-between">
               <h3 className="font-semibold text-foreground">Chat</h3>

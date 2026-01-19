@@ -29,7 +29,7 @@ export const roomService = {
     code: string;
     language: string;
   }) => {
-    const res = await api.post(`/rooms/${data.roomId}/code/save`, {
+    const res = await api.put(`/rooms/${data.roomId}/code/save`, {
       code: data.code,
       language: data.language,
     });
@@ -39,6 +39,12 @@ export const roomService = {
   // Load code
   loadCode: async (roomId: string) => {
     const res = await api.get(`/rooms/${roomId}/code`);
+    return res.data;
+  },
+
+  // Get my rooms
+  getMyRooms: async () => {
+    const res = await api.get('/rooms/my-rooms');
     return res.data;
   },
 };

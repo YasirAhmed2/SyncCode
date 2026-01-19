@@ -9,6 +9,7 @@ import { Loader2, Mail, Lock } from 'lucide-react';
 // import { authService } from '../services/authService';
 import toast from 'react-hot-toast';
 import axios from 'axios';
+// import { io } from 'socket.io-client';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,6 +34,8 @@ const handleSubmit = async (e: React.FormEvent) => {
     toast.success("Login successful");
     console.log("Login response data:", res.data);
     navigate("/dashboard");
+ 
+
   } catch (err: any) {
     const errorMessage = err.response?.data?.message || err.response?.data?.error || "Invalid credentials";
     toast.error(errorMessage);
@@ -41,7 +44,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     setIsLoading(false);
   }
 };
-
+  
   return (
     <AuthLayout
       title="Welcome back"
