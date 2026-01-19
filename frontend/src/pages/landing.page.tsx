@@ -52,10 +52,10 @@ const LandingPage: React.FC = () => {
       {/* Header */}
       <header className="flex justify-between items-center px-8 py-6 relative z-10">
         <div className="flex gap-4">
-          <a className="p-3 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur" href="#">
+          <a className="p-3 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur" href="https://www.linkedin.com/in/iamyasirahmed/">
             <Linkedin className="text-blue-400" />
           </a>
-          <a className="p-3 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur" href="#">
+          <a className="p-3 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur" href="https://github.com/YasirAhmed2">
             <Github className="text-gray-200" />
           </a>
         </div>
