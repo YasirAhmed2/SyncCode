@@ -1,8 +1,5 @@
 import api from "./api";
 
-/* =======================
-   CODE EXECUTION SERVICE
-======================= */
 
 export const executionService = {
   execute: async (data: {

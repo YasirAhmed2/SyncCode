@@ -12,8 +12,6 @@ async function Signup(userData) {
   // const { name, email, password } = req.body;
 console.log("Signup request received with data:", userData);
   
-
-
   const hashedPassword = await bcrypt.hash(userData.password, 10);
 
   const userCreated = new User({
@@ -41,7 +39,6 @@ console.log("Signup request received with data:", userData);
   const user = await userCreated.save();
   // await user.save();
 
- 
   await sendEmail(
     user.email,
     "Verify Your SyncCode Account",

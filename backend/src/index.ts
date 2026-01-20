@@ -13,7 +13,6 @@ import executeRouter from "./routes/execute.route.js";
 
 const app = express();
 
-/* ---------- MIDDLEWARE ---------- */
 app.use(cors({
   origin: ["http://localhost:5173", "http://localhost:8080"],
   credentials: true
@@ -23,7 +22,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-/* ---------- ROUTES ---------- */
+
 app.use("/auth", authRouter);
 app.use("/execute", executeRouter);
 app.use("/user", userRouter);
@@ -33,13 +32,12 @@ app.get("/", (req, res) => {
   res.json({ message: "Welcome to SyncCode Backend API" });
 });
 
-/* ---------- SERVER ---------- */
+
 const server = http.createServer(app);
 
-/* ---------- SOCKET INIT ---------- */
+
 initSocket(server);
 
-/* ---------- START ---------- */
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, async () => {
   try {

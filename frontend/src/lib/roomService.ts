@@ -1,8 +1,5 @@
 import api from "./api";
 
-/* =======================
-   ROOM SERVICE
-======================= */
 
 export const roomService = {
   // Create coding room

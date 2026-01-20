@@ -134,15 +134,10 @@ export const saveRoomCode = async (req: any, res: Response) => {
     const { code, language } = req.body;
     const userId = req.user?.userId;
 
-    if (!code && !language) { // Allow saving just one or the other, or both.
-      // actually the requirements usually imply strictness, but let's allow partial updates if needed, 
-      // OR stick to the previous logic: "Code and language are required"
-      // I'll assume at least one is needed for an update.
+    if (!code && !language) { 
     }
 
-    // Previous logic was strict. Let's keep it strict if that's safer, or allow relaxed.
-    // The previous valid function had: if (!code || !language).
-    // I will stick to that to be safe.
+ 
     if (!code || !language) {
       return res.status(400).json({
         message: "Code and language are required",
