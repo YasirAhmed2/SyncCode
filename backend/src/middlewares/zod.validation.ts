@@ -6,7 +6,7 @@ export const validate =
   (req: Request, res: Response, next: NextFunction) => {
     try {
       schema.parse(req.body);
-      console.log("Validation successful for request body:", req.body);
+      // console.log("Validation successful for request body:", req.body);
       next();
     } catch (error: any) {
       console.error("Validation error:", error.errors);
